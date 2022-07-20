@@ -79,8 +79,16 @@ def home(request):
         user = User.objects.get(username=data.get('userlogged'))
         if user in post.liked_by.all():
             post.liked_by.remove(user)
+            return JsonResponse({
+                'post':data.get('post'),
+                'liked':'true',
+            })
         elif user not in post.liked_by.all():
             post.liked_by.add(user)
+            return JsonResponse({
+                'post':data.get('post'),
+                'liked':'false',
+            })
     return render(request, 'network/home.html')
 
     

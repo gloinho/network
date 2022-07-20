@@ -13,7 +13,8 @@
         function FetchPosts(){
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
-            
+            const [like, setLike] = React.useState('Like')
+
             React.useEffect(() => {
                 // Fetch the data only once.
 
@@ -33,7 +34,7 @@
                     setData(null)
                 })
             }, [])
-
+            //TODO USE STATE!!!!
             function Likes(likes){
                 let string = ''
                 console.log(likes.length)
@@ -50,7 +51,10 @@
                         return 'Nobody liked this yet...'
                     } 
             };
-
+            
+            function changeLike(){
+                setLike('Dislike') //TODO CHANGE STATES
+            }
             return <div class="posts"> 
                 <h1>All Posts</h1>
                     {data &&
@@ -58,8 +62,11 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5>{posted_by}</h5>
-                                <div class='buttons'>
-                                    <button id="like_button" class="btn btn-danger" onClick={()=>{buttons(id, "{{user.username}}", posted_by, 'like')}}>Like</button>
+                                <div class='buttons' user="{{user.username}}">
+                                    <button id="like_button" class="btn btn-danger" onClick={()=>{
+                                        buttons(id, "{{user.username}}", posted_by, 'like')
+                                        changeLike()
+                                    }}>{like}</button>
                                     <button id="follow_button" class="btn btn-info" onClick={()=>{buttons(id, "{{user.username}}", posted_by, 'follow')}}>Follow</button>
                                 </div>
                                 </div>
@@ -74,6 +81,7 @@
         }
         ReactDOM.render(<FetchPosts />, document.querySelector("#posts"));
     </script>
+
     
 
 {% endblock %}

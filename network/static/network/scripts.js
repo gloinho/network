@@ -3,7 +3,7 @@ function buttons(id, user, posted_by, button){
     if(user===posted_by){
         alert(`You cannot ${button} your post!`)
     } else if(button==='like'){
-        const likebutton = document.querySelector('#like_button')
+        const likebutton = document.querySelectorAll('#like_button')
         fetch('home', {
             method:'PUT',
             body:JSON.stringify({
@@ -11,6 +11,8 @@ function buttons(id, user, posted_by, button){
                 post:id,
             })
         })
+        .then(response => response.json())
+        .then(info => console.log(info))
     };}
 
 
