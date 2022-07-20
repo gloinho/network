@@ -2,14 +2,21 @@
 
 {% block body %}
 
+
     <div class="container-fluid" id="posts">   
     </div>
     <script type="text/babel">
-        function App(){
+        // JS Functions
+        const buttons = window["buttons"]
+
+        // React Functions
+        function FetchPosts(){
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
-
+            
             React.useEffect(() => {
+                // Fetch the data only once.
+
                 fetch('all_posts')
                 .then(response => {
                     if (!response.ok){
@@ -18,7 +25,6 @@
                     return response.json()
                 })
                 .then(posts => {
-                    /* console.log(posts) */
                     setData(posts)
                     setError(null)
                     })
@@ -30,29 +36,32 @@
 
             function Likes(likes){
                 let string = ''
+                console.log(likes.length)
                 if(likes.length>0){
-                    if (likes.length >= 3){
-                    return string += `${likes[0]} and 2 more liked this.`
-                }
-                else {
-                    for (let user of likes){
-                        string += ` ${user}, `
+                    if (likes.length >=3){
+                        return string += `${likes[0]}, ${likes[1]} and ${likes.length-2} more liked this.`
+                    } else if (likes.length>1){
+                        return string += `${likes[0]} and ${likes[1]} liked this.`
+                    } else if (likes.length=1){
+                        return string += `${likes[0]} liked this.`
                     }
-                    return string + 'liked this.' 
-                }
-                } return 'Nobody liked this yet...'
-            }
+                    }
+                    else{
+                        return 'Nobody liked this yet...'
+                    } 
+            };
 
-            
-            return <div class="App"> 
-                <h1>Posts</h1>
+            return <div class="posts"> 
+                <h1>All Posts</h1>
                     {data &&
-                    data.map(({ posted_by, content, posted_at, liked_by}) => (
+                    data.map(({id, posted_by, content, posted_at, liked_by}) => (
                         <div class="card">
                             <div class="card-header">
                                 <h5>{posted_by}</h5>
-                                <button>Follow</button>
-                                <button>Like</button>
+                                <div class='buttons'>
+                                    <button id="like_button" class="btn btn-danger" onClick={()=>{buttons(id, "{{user.username}}", posted_by, 'like')}}>Like</button>
+                                    <button id="follow_button" class="btn btn-info" onClick={()=>{buttons(id, "{{user.username}}", posted_by, 'follow')}}>Follow</button>
+                                </div>
                                 </div>
                             <div class="card-body">
                                 <p class="card-text">{content}</p>
@@ -61,9 +70,10 @@
                             <div class="card-footer text-muted">{posted_at}</div>
                         </div>
                     ))}
-                </div>;
+                </div>;    
         }
-        ReactDOM.render(<App />, document.querySelector("#posts"));
+        ReactDOM.render(<FetchPosts />, document.querySelector("#posts"));
     </script>
+    
 
 {% endblock %}

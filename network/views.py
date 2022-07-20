@@ -3,6 +3,9 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 from .models import User, Post
 
@@ -62,11 +65,22 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+@login_required
 def see_all_posts(request):
     all_posts = Post.objects.order_by("-posted_at").all()
     return JsonResponse([post.serialize() for post in all_posts], safe=False)
 
+@login_required
+@csrf_exempt
 def home(request):
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        post = Post.objects.get(id=int(data.get('post')))
+        user = User.objects.get(username=data.get('userlogged'))
+        if user in post.liked_by.all():
+            post.liked_by.remove(user)
+        elif user not in post.liked_by.all():
+            post.liked_by.add(user)
     return render(request, 'network/home.html')
 
     

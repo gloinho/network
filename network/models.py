@@ -8,13 +8,14 @@ class User(AbstractUser):
 
 
 class Post(models.Model):
-    posted_by = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True, related_name='posts')
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     content = models.CharField(max_length=1000, blank=False)
     posted_at = models.DateTimeField(auto_now_add=True)
     liked_by = models.ManyToManyField(User, related_name='liked', blank=True)
     
     def serialize(self):
         return {
+            "id":self.id,
             "posted_by":self.posted_by.username,
             "content":self.content,
             "posted_at":self.posted_at.strftime("%b %d %Y, %I:%M %p"),
@@ -25,7 +26,7 @@ class Post(models.Model):
         return f'{self.posted_by.username} post.'
     
 class Comment(models.Model):
-    posted_by = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True, related_name='comments' )   
+    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments' )   
     posted_on = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
     content = models.CharField(max_length=500, blank=False)
     posted_at = models.DateTimeField(auto_now_add=True)
