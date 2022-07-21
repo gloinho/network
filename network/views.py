@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -74,6 +75,7 @@ def see_all_posts(request):
 @csrf_exempt
 def home(request):
     if request.method == 'PUT':
+        # Insert the user in the post's liked_by array.
         data = json.loads(request.body)
         post = Post.objects.get(id=int(data.get('post')))
         user = User.objects.get(username=data.get('userlogged'))
@@ -81,14 +83,35 @@ def home(request):
             post.liked_by.remove(user)
             return JsonResponse({
                 'post':data.get('post'),
-                'liked':'true',
+                'liked':'Disliked',
             })
         elif user not in post.liked_by.all():
             post.liked_by.add(user)
             return JsonResponse({
                 'post':data.get('post'),
-                'liked':'false',
+                'liked':'Liked',
             })
-    return render(request, 'network/home.html')
+    if request.method == 'POST':
+        # Creates a new post.
+        data = json.loads(request.body)
+        content = data.get('content')
+        posted_by = User.objects.get(id=int(data.get('posted_by')))
+        new_post = Post(
+            posted_by= posted_by,
+            content = content,   
+        )
+        new_post.save()
+    return render(request, 'network/home.html',{
+        'newPost': newPost
+    })
 
-    
+class newPost(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['content']    
+        labels = {'content':''}
+        widgets = {'content': forms.TextInput(attrs={
+            'class':'form-control',
+            'placeholder':"What's poppin?!",
+            'id':'post_content'
+        })}

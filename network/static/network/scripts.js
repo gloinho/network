@@ -3,7 +3,6 @@ function buttons(id, user, posted_by, button){
     if(user===posted_by){
         alert(`You cannot ${button} your post!`)
     } else if(button==='like'){
-        const likebutton = document.querySelectorAll('#like_button')
         fetch('home', {
             method:'PUT',
             body:JSON.stringify({
@@ -11,8 +10,23 @@ function buttons(id, user, posted_by, button){
                 post:id,
             })
         })
-        .then(response => response.json())
-        .then(info => console.log(info))
+        .then(window.location.reload())
     };}
+
+
+
+function submit_post(){
+    const post_content = document.querySelector('#post_content').value;
+    const user_id = JSON.parse(document.getElementById('user_id').textContent);
+    if(post_content){
+        fetch('home',{
+            method:'POST',
+            body: JSON.stringify({
+                posted_by:user_id,
+                content: post_content
+            })
+        })
+    }
+}
 
 

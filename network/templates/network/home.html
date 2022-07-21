@@ -1,9 +1,18 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
+    {{ request.user.id|json_script:"user_id" }}
+    <div class="container-fluid"> 
+        <h1>All Posts</h1>
+        <form class="form-row">
+            <div class="form-group col mb-2">
+                {{newPost}}
+            </div>
+            <button type="submit" class="btn btn-primary mb-2 mx-2 col-1" id="post_button" onclick="submit_post()">Post</button>   
+        </form>
+    </div>
 
-
-    <div class="container-fluid" id="posts">   
+    <div class="container-fluid" id="posts"> 
     </div>
     <script type="text/babel">
         // JS Functions
@@ -13,7 +22,6 @@
         function FetchPosts(){
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
-            const [like, setLike] = React.useState('Like')
 
             React.useEffect(() => {
                 // Fetch the data only once.
@@ -26,6 +34,14 @@
                     return response.json()
                 })
                 .then(posts => {
+                    posts.forEach(post => {
+                        post["like"] = 'Like'
+                        for(let user of post.liked_by){
+                            if(user === "{{user.username}}"){
+                                post["like"] = 'Dislike'
+                            }
+                        } 
+                    })
                     setData(posts)
                     setError(null)
                     })
@@ -34,10 +50,13 @@
                     setData(null)
                 })
             }, [])
+
+
+            
+
             //TODO USE STATE!!!!
             function Likes(likes){
                 let string = ''
-                console.log(likes.length)
                 if(likes.length>0){
                     if (likes.length >=3){
                         return string += `${likes[0]}, ${likes[1]} and ${likes.length-2} more liked this.`
@@ -52,22 +71,17 @@
                     } 
             };
             
-            function changeLike(){
-                setLike('Dislike') //TODO CHANGE STATES
-            }
+     
             return <div class="posts"> 
-                <h1>All Posts</h1>
                     {data &&
-                    data.map(({id, posted_by, content, posted_at, liked_by}) => (
+                    data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                         <div class="card">
                             <div class="card-header">
                                 <h5>{posted_by}</h5>
                                 <div class='buttons' user="{{user.username}}">
-                                    <button id="like_button" class="btn btn-danger" onClick={()=>{
+                                    <button id={id} class="btn btn-danger" onClick={()=>{
                                         buttons(id, "{{user.username}}", posted_by, 'like')
-                                        changeLike()
                                     }}>{like}</button>
-                                    <button id="follow_button" class="btn btn-info" onClick={()=>{buttons(id, "{{user.username}}", posted_by, 'follow')}}>Follow</button>
                                 </div>
                                 </div>
                             <div class="card-body">
