@@ -1,7 +1,7 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    {{ request.user.id|json_script:"user_id" }}
+    {{ request.user.username|json_script:"user_username" }}
     <div class="container-fluid"> 
         <h1>All Posts</h1>
         <form class="form-row">

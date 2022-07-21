@@ -17,16 +17,32 @@ function buttons(id, user, posted_by, button){
 
 function submit_post(){
     const post_content = document.querySelector('#post_content').value;
-    const user_id = JSON.parse(document.getElementById('user_id').textContent);
+    const user_username = JSON.parse(document.getElementById('user_username').textContent);
     if(post_content){
         fetch('home',{
             method:'POST',
             body: JSON.stringify({
-                posted_by:user_id,
+                posted_by:user_username,
                 content: post_content
             })
         })
     }
 }
 
+if(document.querySelector('#user_profile')){
+    document.querySelector('#user_profile').addEventListener('click', ()=> {user_profile})
+}
+    
 
+
+function user_profile(){
+    const user_username = JSON.parse(document.getElementById('user_username').textContent);
+    fetch(`user/${user_username}`)
+    .then(response => response.json())
+    .then(user => {
+        document.querySelector('#user').innerText = user_username
+        document.querySelector('#followers').innerText = user.followers
+        document.querySelector('#following').innerText = user.following
+
+    })
+}

@@ -1,5 +1,20 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-TODO
+{{ request.user.username|json_script:"user_username" }}
+    <div class="container-fluid"> 
+        <h1>Welcome to the Network <b>{{user.username}}</b>!!</h1>
+        {% if user.is_authenticated %}
+        <form class="form-row">
+            <div class="form-group col mb-2">
+                {{newPost}}
+            </div>
+            <button type="submit" class="btn btn-primary mb-2 mx-2 col-1" id="post_button" onclick="submit_post()">Post</button>   
+        </form>
+        {%endif%}
+    </div>
+
+    <div id="user"></div>
+    <div id="followers"></div>
+    <div id="following"></div>
 {% endblock %}

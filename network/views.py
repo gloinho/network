@@ -7,12 +7,25 @@ from django.urls import reverse
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+from django.db.models.base import ObjectDoesNotExist
 
 from .models import User, Post
 
 
 def index(request):
-    return render(request, "network/index.html")
+    if request.method == 'POST':
+        # Creates a new post.
+        data = json.loads(request.body)
+        content = data.get('content')
+        posted_by = User.objects.get(id=int(data.get('posted_by')))
+        new_post = Post(
+            posted_by= posted_by,
+            content = content,   
+        )
+        new_post.save()
+    return render(request, "network/index.html",{
+            'newPost': newPost
+        })
 
 
 def login_view(request):
@@ -95,7 +108,7 @@ def home(request):
         # Creates a new post.
         data = json.loads(request.body)
         content = data.get('content')
-        posted_by = User.objects.get(id=int(data.get('posted_by')))
+        posted_by = User.objects.get(username=data.get('posted_by'))
         new_post = Post(
             posted_by= posted_by,
             content = content,   
@@ -106,6 +119,7 @@ def home(request):
     })
 
 class newPost(forms.ModelForm):
+    
     class Meta:
         model = Post
         fields = ['content']    
@@ -115,3 +129,21 @@ class newPost(forms.ModelForm):
             'placeholder':"What's poppin?!",
             'id':'post_content'
         })}
+
+def user_profile(request, username):
+    user = User.objects.get(username=username)
+    try:
+        connections = user.connections.following.all()
+        following = [following.username for following in connections]
+        followers = [follower.username for follower in connections]
+    except ObjectDoesNotExist:
+        following = 'undefined'
+        followers = 'undefined'
+    try:
+        posts = [post.id for post in user.posts.all()]
+        
+    except ObjectDoesNotExist:
+        posts = 'undefined'
+        
+    return JsonResponse([{'posts': posts, 'following':following,'followers':followers }], safe=False)
+    

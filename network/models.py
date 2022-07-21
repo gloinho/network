@@ -32,11 +32,11 @@ class Comment(models.Model):
     posted_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f'f{self.posted_by} comment.'
+        return f'{self.posted_by} comment.'
     
     
-class Follow(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True, unique=True, related_name='follows') 
+class Connections(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True, unique=True, related_name='connections') 
     
     """     def exclude_this_user_from_options(self):
             FOLLOW_CHOICES = []
@@ -52,6 +52,6 @@ class Follow(models.Model):
     following = models.ManyToManyField(User, related_name='following')
      
     def __str__(self):
-        return f'f{self.user} relationships.'
+        return f'{self.user} connections.'
     
     
