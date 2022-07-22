@@ -18,25 +18,30 @@
     </div>
 
     <script type="text/babel">
-        // React Functions
-        function buttons(id, posted_by){
-            // Only do actions if the post is not posted by user logged in
-            if(user===posted_by){
-                alert(`You cannot like your post!`)
-            } else {
-                fetch('home', {
-                    method:'PUT',
-                    body:JSON.stringify({
-                        user:"{{user.username}}",
-                        post:id,
-                    })
-                })
-            };
-        }
-
         function FetchPosts(){
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
+            const [L, setL] = React.useState([])
+            const [update, setUpdate] = React.useState(true)
+
+
+
+            function buttons(id, posted_by){
+                // Only do actions if the post is not posted by user logged in
+                if("{{user.username}}"===posted_by){
+                    alert(`You cannot like your post!`)
+                } else {
+                    fetch('home', {
+                        method:'PUT',
+                        body:JSON.stringify({
+                            user:"{{user.username}}",
+                            post:id,
+                        })
+                    })
+                    .then(changeLike(id))
+                };
+            }   
+
 
             React.useEffect(() => {
                 // Fetch the data only once.
@@ -49,23 +54,24 @@
                     return response.json()
                 })
                 .then(posts => {
+                    const newL = []
                     posts.forEach(post => {
-                        post["like"] = 'Like'
-                        for(let user of post.liked_by){
-                            if(user === "{{user.username}}"){
-                                post["like"] = 'Dislike'
-                            }
-                        } 
+                        if(post.liked_by.includes("{{user.username}}")){
+                            newL.push({id:post.id, like:'Dislike'})
+                        } else{
+                            newL.push({id:post.id, like:'Like'})
+                        }   
                     })
-                    setData(posts)
+                    setL(newL)
                     setError(null)
-                    })
+                    setData(posts)
+                })
                 .catch(err => {
                     setError(err.message)
                     setData(null)
                 })
-            }, [])
-
+            }, [update])
+            
             function Likes(likes){
                 let string = ''
                 if(likes.length>0){
@@ -81,27 +87,32 @@
                         return 'Nobody liked this yet...'
                     } 
             };
-            function changeLike(id, value){
-                const newdata = data
-                const index = newdata.findIndex(post => post.id === 2)
-                newdata[index].like = value
-                setData(newdata)
+
+            function changeLike(id){
+                const newL = L
+                const postindex = newL.findIndex(item => item.id === id)
+                const item = newL[postindex]
+                if (item.like ==='Like'){
+                    item.like = 'Dislike'
+                } else{
+                    item.like = 'Like'
                 }
+                setL(newL)
+                setUpdate(!update)
+            }
             
+  
+
+
             return <div class="posts"> 
                 {data && data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
-                    <div class="card" key={id}>
+                    <div class="card">
                             <div class="card-header">
                                 <h5>{posted_by}</h5>
                                 <div class='buttons' user="{{user.username}}">
-                                    <button id={id} class="btn btn-danger" onClick={()=>{
+                                    <button key={id} id={id} class="btn btn-danger" onClick={()=>{
                                         buttons(id, posted_by)
-                                        if(like==='Like'){
-                                            changeLike(id, 'Dislike')
-                                        } else{
-                                            changeLike(id, 'Like')
-                                        }
-                                    }}>{like}</button>
+                                    }}>{L.filter(post => (post.id === id))[0].like}</button>
                                 </div>
                                 </div>
                             <div class="card-body">
