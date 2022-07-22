@@ -91,7 +91,7 @@ def home(request):
         # Insert the user in the post's liked_by array.
         data = json.loads(request.body)
         post = Post.objects.get(id=int(data.get('post')))
-        user = User.objects.get(username=data.get('userlogged'))
+        user = User.objects.get(username=data.get('user'))
         if user in post.liked_by.all():
             post.liked_by.remove(user)
             return JsonResponse({
@@ -146,4 +146,8 @@ def user_profile(request, username):
         posts = 'undefined'
         
     return JsonResponse([{'posts': posts, 'following':following,'followers':followers }], safe=False)
-    
+
+
+#TODO
+def see_user_posts(request):
+    pass

@@ -2,19 +2,125 @@
 
 {% block body %}
 {{ request.user.username|json_script:"user_username" }}
-    <div class="container-fluid"> 
+    <div class="container-fluid" id="title"> 
         <h1>Welcome to the Network <b>{{user.username}}</b>!!</h1>
         {% if user.is_authenticated %}
         <form class="form-row">
             <div class="form-group col mb-2">
                 {{newPost}}
             </div>
-            <button type="submit" class="btn btn-primary mb-2 mx-2 col-1" id="post_button" onclick="submit_post()">Post</button>   
+            <button type="submit" class="btn btn-primary mb-2 mx-2 col-1" id="post_button">Post</button>   
         </form>
         {%endif%}
     </div>
 
-    <div id="user"></div>
-    <div id="followers"></div>
-    <div id="following"></div>
+    <div class="container-fluid" id="posts"> 
+    </div>
+
+    <script type="text/babel">
+        // React Functions
+        function buttons(id, posted_by){
+            // Only do actions if the post is not posted by user logged in
+            if(user===posted_by){
+                alert(`You cannot like your post!`)
+            } else {
+                fetch('home', {
+                    method:'PUT',
+                    body:JSON.stringify({
+                        user:"{{user.username}}",
+                        post:id,
+                    })
+                })
+            };
+        }
+
+        function FetchPosts(){
+            const [data, setData] = React.useState(null);
+            const [error, setError] = React.useState(null);
+
+            React.useEffect(() => {
+                // Fetch the data only once.
+
+                fetch('all_posts')
+                .then(response => {
+                    if (!response.ok){
+                        throw new Error(`HTTP Error Status ${response.status}`)
+                    };
+                    return response.json()
+                })
+                .then(posts => {
+                    posts.forEach(post => {
+                        post["like"] = 'Like'
+                        for(let user of post.liked_by){
+                            if(user === "{{user.username}}"){
+                                post["like"] = 'Dislike'
+                            }
+                        } 
+                    })
+                    setData(posts)
+                    setError(null)
+                    })
+                .catch(err => {
+                    setError(err.message)
+                    setData(null)
+                })
+            }, [])
+
+            function Likes(likes){
+                let string = ''
+                if(likes.length>0){
+                    if (likes.length >=3){
+                        return string += `${likes[0]}, ${likes[1]} and ${likes.length-2} more liked this.`
+                    } else if (likes.length>1){
+                        return string += `${likes[0]} and ${likes[1]} liked this.`
+                    } else if (likes.length=1){
+                        return string += `${likes[0]} liked this.`
+                    }
+                    }
+                    else{
+                        return 'Nobody liked this yet...'
+                    } 
+            };
+            function changeLike(id, value){
+                const newdata = data
+                const index = newdata.findIndex(post => post.id === 2)
+                newdata[index].like = value
+                setData(newdata)
+                }
+            
+            return <div class="posts"> 
+                {data && data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
+                    <div class="card" key={id}>
+                            <div class="card-header">
+                                <h5>{posted_by}</h5>
+                                <div class='buttons' user="{{user.username}}">
+                                    <button id={id} class="btn btn-danger" onClick={()=>{
+                                        buttons(id, posted_by)
+                                        if(like==='Like'){
+                                            changeLike(id, 'Dislike')
+                                        } else{
+                                            changeLike(id, 'Like')
+                                        }
+                                    }}>{like}</button>
+                                </div>
+                                </div>
+                            <div class="card-body">
+                                <p class="card-text">{content}</p>
+                                <div class="text-muted">{Likes(liked_by)}</div>
+                            </div>
+                            <div class="card-footer text-muted">{posted_at}</div>
+                        </div>
+                    ))}
+                </div>;
+        }
+        ReactDOM.render(<FetchPosts />, document.querySelector("#posts"));
+    </script>
+
+    <div class="container-fluid" id="profile"> 
+        <div id="user">{{user.username}}</div>
+        <div id="followers">Followers: </div>
+        <div id="following">Following: </div>
+        <div id="yourposts"></div> <!-- TODO script pra ver um post -->
+    </div>
+    
 {% endblock %}
