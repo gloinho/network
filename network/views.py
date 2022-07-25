@@ -134,22 +134,34 @@ class newPost(forms.ModelForm):
 
 def user_profile(request, username):
     user = User.objects.get(username=username)
-    try:
-        connections = user.connections.following.all()
-        following = [following.username for following in connections]
-        followers = [follower.username for follower in connections]
-    except ObjectDoesNotExist:
-        following = 'undefined'
-        followers = 'undefined'
-    try:
-        posts = [post.id for post in user.posts.all()]
-        
-    except ObjectDoesNotExist:
-        posts = 'undefined'
+    connections = user.connections
+    following = [following.username for following in connections.following.all()]
+    followers = [follower.username for follower in connections.followers.all()]
+    posts = [post.id for post in user.posts.all()]
         
     return JsonResponse([{'posts': posts, 'following':following,'followers':followers }], safe=False)
 
 
 #TODO
-def see_user_posts(request):
-    pass
+def see_user_infos(request):
+    user = User.objects.get(username=request.user)
+    print(user)
+ 
+@csrf_exempt   
+def follow(request):
+    data = json.loads(request.body)
+    user = User.objects.get(username=request.user)
+    target = User.objects.get(username=data.get('target'))
+
+    if target in user.connections.following.all():
+        user.connections.following.remove(target)
+        target.connections.followers.remove(user)
+    else:
+        user.connections.following.add(target)
+        target.connections.followers.add(user)
+    print(user.connections.following.all())
+    print(target.connections.followers.all())
+    following = [u.username for u in user.connections.following.all()]
+    return JsonResponse([{'following':following}], safe=False)
+      
+    

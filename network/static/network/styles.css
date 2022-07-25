@@ -2,11 +2,13 @@
     margin-bottom: 20px;
 }
 
-#user_profile:hover,
+.user_profile:hover,
 #allposts:hover{
     cursor: pointer;
 }
 
 #posts,#profile{
     display: none;
+    margin-top: 20px;
 }
+

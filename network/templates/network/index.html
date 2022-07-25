@@ -89,7 +89,6 @@
                 console.log('"Post Form" cannot exist with no user logged in')   
             }
 
-            
 
             function Likes(likes){
                 let string = ''
@@ -124,7 +123,7 @@
                 {data && data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                     <div class="card">
                             <div class="card-header">
-                                <h5>{posted_by}</h5>
+                                <h5><a class="user_profile" onClick={()=> (window['user_profile']({posted_by}))}>{posted_by}</a></h5>
                                 <div class='buttons' user="{{user.username}}">
                                     <button key={id} id={id} class="btn btn-danger" onClick={()=>{
                                         buttons(id, posted_by)
@@ -144,10 +143,40 @@
     </script>
 
     <div class="container-fluid" id="profile"> 
-        <div id="user">{{user.username}}</div>
-        <div id="followers">Followers: </div>
-        <div id="following">Following: </div>
-        <div id="yourposts"></div> <!-- TODO script pra ver um post -->
     </div>
-    
+    <script type="text/babel">
+
+        function follow(user){
+            console.log(user)
+            fetch('follow',{
+                method: 'PUT',
+                body:  JSON.stringify({
+                    target : user
+                })
+            })
+            .then(response => response.json())
+            .then(result => (changeFollowState()))
+        }
+
+        function changeFollowState(){
+
+        }
+
+        function User(){
+            return         <div class="row align-items-center">
+                <div class="col" id="name">
+                    <img src="https://st3.depositphotos.com/6672868/13701/v/380/depositphotos_137014128-stock-illustration-user-profile-icon.jpg?forcejpeg=true" height="200" alt="profile placeholder"></img>
+                </div>
+                <div class="col " id="info">
+                    <div class="row text-center" id="user"></div>
+                    <div class="row" id="following"></div>
+                    <div class="row" id="followers"></div>
+                    <div class="row " id="postings"></div>
+                    <button id="followbutton" onClick={()=>(follow(document.getElementById('user').innerText))}></button>    
+                </div>
+            </div>
+        }
+        ReactDOM.render(<User />, document.querySelector("#profile"));
+    </script>
+
 {% endblock %}

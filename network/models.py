@@ -51,8 +51,8 @@ class Connections(models.Model):
             
         FOLLOW_CHOICES = exclude_this_user_from_options() """
             
-    followers = models.ManyToManyField(User, related_name='followers')
-    following = models.ManyToManyField(User, related_name='following')
+    followers = models.ManyToManyField(User, related_name='followers', blank=True, null=True)
+    following = models.ManyToManyField(User, related_name='following', blank=True, null=True)
      
     def __str__(self):
         return f'{self.user} connections.'
