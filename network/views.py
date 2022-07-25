@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 from django.db.models.base import ObjectDoesNotExist
 
-from .models import User, Post
+from .models import User, Post, Connections
 
 
 def index(request):
@@ -66,10 +66,12 @@ def register(request):
                 "message": "Passwords must match."
             })
 
-        # Attempt to create new user
+        # Attempt to create new user and empty connections
         try:
             user = User.objects.create_user(username, email, password)
+            newconnection = Connections.objects.create(user=user)
             user.save()
+            
         except IntegrityError:
             return render(request, "network/register.html", {
                 "message": "Username already taken."

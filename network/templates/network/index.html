@@ -69,8 +69,9 @@
                     setData(null)
                 })
             }, [update])
-
-            document.querySelector('form').onsubmit = event => {
+            
+            try{
+                document.querySelector('form').onsubmit = event => {
                 const post_content = document.querySelector('#post_content').value;
                 const user_username = JSON.parse(document.getElementById('user_username').textContent);
                 fetch('home',{
@@ -80,12 +81,16 @@
                         content: post_content
                     })
                 }) 
+                .then(setUpdate(!update))
                 .then(document.querySelector('#post_content').value = '')   
-                event.preventDefault()
-                setUpdate(!update)
                 return false
             }
+            } catch(TypeError){
+                console.log('"Post Form" cannot exist with no user logged in')   
+            }
+
             
+
             function Likes(likes){
                 let string = ''
                 if(likes.length>0){

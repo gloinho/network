@@ -13,6 +13,9 @@ class Post(models.Model):
     posted_at = models.DateTimeField(auto_now_add=True)
     liked_by = models.ManyToManyField(User, related_name='liked', blank=True)
     
+    def is_content_empty(self):
+        return self.content == ''
+    
     def serialize(self):
         return {
             "id":self.id,
