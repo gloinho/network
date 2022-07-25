@@ -6,3 +6,7 @@
 #allposts:hover{
     cursor: pointer;
 }
+
+#posts,#profile{
+    display: none;
+}

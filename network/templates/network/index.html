@@ -25,7 +25,6 @@
             const [update, setUpdate] = React.useState(true)
 
 
-
             function buttons(id, posted_by){
                 // Only do actions if the post is not posted by user logged in
                 if("{{user.username}}"===posted_by){
@@ -41,7 +40,6 @@
                     .then(changeLike(id))
                 };
             }   
-
 
             React.useEffect(() => {
                 // Fetch the data only once.
@@ -71,6 +69,22 @@
                     setData(null)
                 })
             }, [update])
+
+            document.querySelector('form').onsubmit = event => {
+                const post_content = document.querySelector('#post_content').value;
+                const user_username = JSON.parse(document.getElementById('user_username').textContent);
+                fetch('home',{
+                    method:'POST',
+                    body: JSON.stringify({
+                        posted_by:user_username,
+                        content: post_content
+                    })
+                }) 
+                .then(document.querySelector('#post_content').value = '')   
+                event.preventDefault()
+                setUpdate(!update)
+                return false
+            }
             
             function Likes(likes){
                 let string = ''
@@ -101,9 +115,6 @@
                 setUpdate(!update)
             }
             
-  
-
-
             return <div class="posts"> 
                 {data && data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                     <div class="card">
