@@ -2,9 +2,33 @@
 
 {%block body%}
 
-<div id="user"></div>
-<div id="followers"></div>
-<div id="following"></div>
+
+<div class="container-fluid" id="profile"> 
+    <div class="row align-items-center">
+        <div class="col" id="name">
+            <img src="https://st3.depositphotos.com/6672868/13701/v/380/depositphotos_137014128-stock-illustration-user-profile-icon.jpg?forcejpeg=true" height="200" alt="profile placeholder"></img>
+        </div>
+        <div class="col " id="info">
+            <div class="row text-center" id="user"></div>
+            <div class="row" id="following"></div>
+            <div class="row" id="followers"></div>
+            <div class="row " id="postings"></div>
+            <button id="followbutton"></button>    
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<script type="text/babel">
+    function UserInfo(){
+
+    }
+
+</script>
+
 
 
 {%endblock%}

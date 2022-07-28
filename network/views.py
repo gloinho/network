@@ -141,12 +141,10 @@ def user_profile(request, username):
         
     return JsonResponse([{'posts': posts, 'following':following,'followers':followers }], safe=False)
 
+def user_view(request, username):
+    return render(request, 'network/user.html')
 
-#TODO
-def see_user_infos(request):
-    user = User.objects.get(username=request.user)
-    print(user)
- 
+
 @csrf_exempt   
 def follow(request):
     data = json.loads(request.body)
