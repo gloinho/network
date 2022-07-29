@@ -82,13 +82,8 @@ def register(request):
         return render(request, "network/register.html")
 
 @login_required
-def see_all_posts(request):
-    all_posts = Post.objects.order_by("-posted_at").all()
-    return JsonResponse([post.serialize() for post in all_posts], safe=False)
-
-@login_required
 @csrf_exempt
-def home(request):
+def see_all_posts(request):
     if request.method == 'PUT':
         # Insert the user in the post's liked_by array.
         data = json.loads(request.body)
@@ -106,19 +101,16 @@ def home(request):
                 'post':data.get('post'),
                 'liked':'Liked',
             })
+            
     if request.method == 'POST':
         # Creates a new post.
         data = json.loads(request.body)
         content = data.get('content')
         posted_by = User.objects.get(username=data.get('posted_by'))
-        new_post = Post(
-            posted_by= posted_by,
-            content = content,   
-        )
-        new_post.save()
-    return render(request, 'network/home.html',{
-        'newPost': newPost
-    })
+        Post.objects.create(posted_by=posted_by, content=content)
+        
+    all_posts = Post.objects.order_by("-posted_at").all()
+    return JsonResponse([post.serialize() for post in all_posts], safe=False)
 
 class newPost(forms.ModelForm):
     
