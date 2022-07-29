@@ -13,19 +13,7 @@ from .models import User, Post, Connections
 
 
 def index(request):
-    if request.method == 'POST':
-        # Creates a new post.
-        data = json.loads(request.body)
-        content = data.get('content')
-        posted_by = User.objects.get(id=int(data.get('posted_by')))
-        new_post = Post(
-            posted_by= posted_by,
-            content = content,   
-        )
-        new_post.save()
-    return render(request, "network/index.html",{
-            'newPost': newPost
-        })
+    return render(request, "network/index.html")
 
 
 def login_view(request):
@@ -81,7 +69,6 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
-@login_required
 @csrf_exempt
 def see_all_posts(request):
     if request.method == 'PUT':
@@ -112,18 +99,6 @@ def see_all_posts(request):
     all_posts = Post.objects.order_by("-posted_at").all()
     return JsonResponse([post.serialize() for post in all_posts], safe=False)
 
-class newPost(forms.ModelForm):
-    
-    class Meta:
-        model = Post
-        fields = ['content']    
-        labels = {'content':''}
-        widgets = {'content': forms.TextInput(attrs={
-            'class':'form-control',
-            'placeholder':"What's poppin?!",
-            'id':'post_content'
-        })}
-
 def user_profile(request, username):
     user = User.objects.get(username=username)
     connections = user.connections
@@ -135,7 +110,6 @@ def user_profile(request, username):
 
 def user_view(request, username):
     return render(request, 'network/user.html')
-
 
 @csrf_exempt   
 def follow(request):

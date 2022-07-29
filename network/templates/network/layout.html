@@ -12,39 +12,52 @@
         <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     </head>
     <body>
+        <div id="nav">
+        </div>
+        <script type="text/babel">
+            function LoggedLinks(){
+                const auth = "{{user.is_authenticated}}" === 'False' ? false : true 
+                return (
+                    auth ?  
+                    <ul className="navbar-nav mr-auto"> 
+                        <li className="nav-item">
+                            {"{%if user.is_authenticated%}"}
+                                <a className="nav-link user_profile" id="user_profile" href={"{% url 'user' user.username%}"}><strong>{"{{user.username}}"}</strong></a>
+                            {"{%endif%}"}
+                        </li>                              
+                        <li className="nav-item">
+                            <a className="nav-link" href="#">Following</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link" href={"{% url 'logout' %}"}>Log Out</a>
+                        </li>
+                        <li className="nav-item">
+                                <a className="nav-link" id="allposts">All Posts</a>
+                        </li>
+                    </ul>
+                    :
+                    <ul className="navbar-nav mr-auto">
+                        <li className="nav-item">
+                            <a className="nav-link" href={"{% url 'login' %}"}>Log In</a>
+                        </li>
+                        <li className="nav-item">
+                            <a className="nav-link" href={"{% url 'register' %}"}>Register</a>
+                        </li>
+                    </ul>    
+                )
+            }
 
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <a class="navbar-brand" href="{% url 'index' %}">Network</a>
-          
-            <div>
-              <ul class="navbar-nav mr-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link user_profile" id="user_profile" href="{% url 'user' user.username %}"><strong>{{ user.username }}</strong></a>
-                    </li>
-                {% endif %}
-                <li class="nav-item">
-                  <a class="nav-link" id="allposts">All Posts</a>
-                </li>
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Following</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'logout' %}">Log Out</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Log In</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
-                {% endif %}
-              </ul>
-            </div>
-          </nav>
-        
+            function Nav(){
+                return (
+                    <nav className="navbar navbar-expand-lg navbar-light bg-light">
+                        <a className="navbar-brand" href={"{% url 'index' %}"}>Network</a>
+                        <LoggedLinks/>   
+                    </nav>
+
+                )
+            }
+            ReactDOM.render(< Nav/>, document.getElementById("nav"))
+        </script>
         <div class="body">
             {% block body %}
             {% endblock %}
