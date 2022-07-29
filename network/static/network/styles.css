@@ -2,9 +2,11 @@
     margin-bottom: 20px;
 }
 
-.user_profile:hover,
-#allposts:hover{
-    cursor: pointer;
+button.nav-link, button.nav-link:focus{
+    border:none;
+    background:none;
+    outline: none;
+
 }
 
 

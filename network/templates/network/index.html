@@ -23,14 +23,15 @@
                 </div>
             )
         }
-        function LogoutView(){
+        
+        function Home(){
             return (
                 <img src="https://www.aquatic.one/wp-content/uploads/2018/09/welcome.png"/>
             )
             
         }
 
-        function PostForm(){
+        function PostForm(props){
             const [formData, setformData] = React.useState({
                 posted_by: "{{user.username}}",
                 content: ""
@@ -48,8 +49,10 @@
                 fetch('all_posts',{
                     method:'POST',
                     body: JSON.stringify(formData)
-                }) 
-                location.reload()   
+                })
+                props.setUpdate(prevUpdate => !prevUpdate)
+                props.setShowPosts(true)
+                  
             }
 
             return ( 
@@ -91,8 +94,7 @@
         function Posts (props) {
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
-            
-        
+
             function changeButton(id, posted_by, liked_by){
                 // Only do actions if the post is not posted by user logged in
                 if("{{user.username}}"===posted_by){
@@ -133,7 +135,7 @@
             }, [props.update])
 
             return <div className="container-fluid"> 
-                {data && data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
+                {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                     <div className="card">
                             <div className="card-header">
                                 <h5><a>{posted_by}</a></h5>
@@ -154,13 +156,35 @@
         function App(){
             const auth = "{{user.is_authenticated}}" === 'False' ? false : true
             const [update, setUpdate] = React.useState(false);
-            
+            const [showPosts, setShowPosts] = React.useState(false)
+            const [showProfile, setShowProfile] = React.useState(false)
+            const [showFollowing, setShowFollowing] = React.useState(false)
+
+            React.useEffect(()=>{
+                const allPostLink = document.querySelector('#allposts')
+                const userLink = document.querySelector('#user_profile')
+                userLink ? userLink.addEventListener('click', () => profileView()) : null
+                allPostLink ? allPostLink.addEventListener('click', ()=> postsView()) : null
+            },[])
+
+
+            function profileView(){
+                setShowPosts(false)
+                setShowProfile(true)    
+            }
+
+            function postsView(){
+                setShowPosts(true)
+                setShowProfile(false)
+            }
+
 
             return (
                 <div>
-                    {!auth && <LogoutView/>}
-                    {auth && <PostForm />}
-                    {auth && <Posts setUpdate={setUpdate} update={update}/>}
+                    {!showProfile && !showPosts && <Home/>}
+                    {auth && showProfile && <UserView/>}
+                    {auth && showPosts && <PostForm setShowPosts={setShowPosts} setUpdate={setUpdate}/>}
+                    {showPosts && <Posts setUpdate={setUpdate} update={update}/>}
                 </div>
             )
         }
