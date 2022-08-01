@@ -128,4 +128,10 @@ def follow(request):
     print(following)
     return JsonResponse({'following':following}, safe=False)
       
+def following_posts (request):
+    user = User.objects.get(username=request.user)
+    following = user.connections.following.all()
+    posts = [User.objects.get(username=u).posts.all() for u in following]
+
+    return JsonResponse({'following':[users.username for users in following]})
     
