@@ -131,7 +131,11 @@ def follow(request):
 def following_posts (request):
     user = User.objects.get(username=request.user)
     following = user.connections.following.all()
-    posts = [User.objects.get(username=u).posts.all() for u in following]
-
-    return JsonResponse({'following':[users.username for users in following]})
+    queryset_array = [User.objects.get(username=u).posts.order_by("-posted_at").all() for u in following]
+    posts = []
+    for queryset in queryset_array:
+        for post in queryset:
+            posts.append(post.serialize())
+    
+    return JsonResponse({'posts':posts})
     
