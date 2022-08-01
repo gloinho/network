@@ -2,11 +2,22 @@
     margin-bottom: 20px;
 }
 
-button.nav-link, button.nav-link:focus{
+button.nav-link, 
+button.nav-link:focus,
+#user_button,
+#user_button:focus{
     border:none;
     background:none;
     outline: none;
 
 }
 
+.home{
+    display: flex;
+    justify-content: center;
+    padding: 50px;
+}
+.home > img{
+    border-radius: 20px;
+}
 

@@ -5,30 +5,60 @@
     </div>
 
     <script type="text/babel">
-        function UserView(){
-            return (
-                <div class="container-fluid" id="profile"> 
+        function FollowButton(props){
+            const [isFollowed, setIsFollowed] = React.useState(props.followers.includes("{{user.username}}") ? true : false)
+            
+            function followAction(){
+                fetch('follow',{
+                    method:'PUT',
+                    body:JSON.stringify({
+                        target:props.user
+                    })
+                })
+                .then(response=> response.json())
+                .then(message => {message.error? alert(message.error) : alert(message.following)})  
+                setIsFollowed(prevIsFollowed => !prevIsFollowed)  
+                     
+        }
+            return <button id="followbutton" onClick={()=>followAction()}>{isFollowed ? 'Unfollow' : 'Follow'}</button>
+        
+        }
+
+        function UserView(props){
+            const [userInfo, setUserInfo] = React.useState(null)
+            const [update, setUpdate] = React.useState(true)
+            const [count, setCount] = React.useState(0)
+
+            React.useEffect(()=>{
+                fetch(`user_profile/${props.user}`)
+                .then(response => response.json())
+                .then(userInfo => setUserInfo(userInfo))
+            },[props.user])
+  
+            return (userInfo &&  
+                (<div class="container-fluid" id="profile"> 
                     <div class="row align-items-center">
                         <div class="col" id="name">
                             <img src="https://st3.depositphotos.com/6672868/13701/v/380/depositphotos_137014128-stock-illustration-user-profile-icon.jpg?forcejpeg=true" height="200" alt="profile placeholder"></img>
                         </div>
                         <div class="col " id="info">
-                            <div class="row text-center" id="user"></div>
-                            <div class="row" id="following"></div>
-                            <div class="row" id="followers"></div>
-                            <div class="row " id="postings"></div>
-                            <button id="followbutton"></button>    
+                            <div class="row text-center" id="user">{props.user}</div>
+                            <div class="row" id="following">Following: {userInfo.following.length}</div>
+                            <div class="row" id="followers">Followers: {userInfo.followers.length}</div>
+                            <div class="row " id="postings">Postings: {userInfo.posts.length}</div>
+                            {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={userInfo.followers} setCount={setCount}/>}
                         </div>
                     </div>
-                </div>
-            )
+                </div>)
+            )    
         }
         
         function Home(){
             return (
-                <img src="https://www.aquatic.one/wp-content/uploads/2018/09/welcome.png"/>
-            )
-            
+                <div className="home">
+                    <img src="https://miro.medium.com/max/1200/1*nm4VZt2HpZj0CW3FL3b-eg.png"/>
+                </div>
+            )    
         }
 
         function PostForm(props){
@@ -83,7 +113,7 @@
             return <div className="text-muted">{string}</div>
         }
 
-        function Buttons(props){
+        function LikeButtons(props){
             return (
                 props.like ? 
                     <button key={props.id} id={props.id} className="btn btn-success" onClick={()=>{props.func(props.id, props.posted_by, props.liked_by)}}>Like</button> :
@@ -138,9 +168,9 @@
                 {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                     <div className="card">
                             <div className="card-header">
-                                <h5><a>{posted_by}</a></h5>
+                                <h5><button id="user_button" onClick={()=>props.profile(posted_by)}>{posted_by}</button></h5>
                                 <div className='buttons' user="{{user.username}}">
-                                    <Buttons id={id} liked_by={liked_by} like={like} posted_by={posted_by} func = {changeButton}/>
+                                    <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} func = {changeButton}/>
                                 </div>
                                 </div>
                             <div className="card-body">
@@ -163,28 +193,30 @@
             React.useEffect(()=>{
                 const allPostLink = document.querySelector('#allposts')
                 const userLink = document.querySelector('#user_profile')
-                userLink ? userLink.addEventListener('click', () => profileView()) : null
-                allPostLink ? allPostLink.addEventListener('click', ()=> postsView()) : null
+                userLink ? userLink.addEventListener('click', () => profileView("{{user.username}}")) : null
+                allPostLink ? allPostLink.addEventListener('click', ()=> postsView("{{user.username}}")) : null
             },[])
 
 
-            function profileView(){
+            function profileView(user){
                 setShowPosts(false)
-                setShowProfile(true)    
+                setShowProfile({
+                    isShown:true,
+                    user:user
+                })    
             }
 
-            function postsView(){
+            function postsView(user){
                 setShowPosts(true)
-                setShowProfile(false)
+                setShowProfile({isSHown:false, user:user})
             }
-
 
             return (
-                <div>
-                    {!showProfile && !showPosts && <Home/>}
-                    {auth && showProfile && <UserView/>}
-                    {auth && showPosts && <PostForm setShowPosts={setShowPosts} setUpdate={setUpdate}/>}
-                    {showPosts && <Posts setUpdate={setUpdate} update={update}/>}
+                <div>       
+                    {!showProfile.isShown && !showPosts && <Home/>}
+                    {auth && showProfile.isShown && <UserView user={showProfile.user}/>}
+                    {auth && showPosts && <PostForm setUpdate={setUpdate}/>}
+                    {showPosts && <Posts setUpdate={setUpdate} update={update} profile={profileView}/>}
                 </div>
             )
         }

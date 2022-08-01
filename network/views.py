@@ -104,28 +104,28 @@ def user_profile(request, username):
     connections = user.connections
     following = [following.username for following in connections.following.all()]
     followers = [follower.username for follower in connections.followers.all()]
-    posts = [post.id for post in user.posts.all()]
-        
-    return JsonResponse([{'posts': posts, 'following':following,'followers':followers }], safe=False)
+    userpost = Post.objects.order_by("-posted_at").filter(posted_by=user)
+    
+    return JsonResponse({'posts': [post.serialize() for post in userpost], 'following':following,'followers':followers }, safe=False)
 
-def user_view(request, username):
-    return render(request, 'network/user.html')
 
 @csrf_exempt   
 def follow(request):
     data = json.loads(request.body)
     user = User.objects.get(username=request.user)
     target = User.objects.get(username=data.get('target'))
-
-    if target in user.connections.following.all():
-        user.connections.following.remove(target)
-        target.connections.followers.remove(user)
+    if user!=target:
+        if target in user.connections.following.all():
+            user.connections.following.remove(target)
+            target.connections.followers.remove(user)
+        else:
+            user.connections.following.add(target)
+            target.connections.followers.add(user)
     else:
-        user.connections.following.add(target)
-        target.connections.followers.add(user)
-    print(user.connections.following.all())
-    print(target.connections.followers.all())
+        return(JsonResponse({"error":"You can't follow yourself."}, safe=False))
+
     following = [u.username for u in user.connections.following.all()]
-    return JsonResponse([{'following':following}], safe=False)
+    print(following)
+    return JsonResponse({'following':following}, safe=False)
       
     
