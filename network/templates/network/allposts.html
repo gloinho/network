@@ -5,11 +5,13 @@
 </div>
 <script type="text/babel">
     function PostForm(props){
+        /* Create a new state for changes on the input */
         const [formData, setformData] = React.useState({
             posted_by: "{{user.username}}",
             content: ""
         })
         
+        /* Populates the formData state with the changes in the input field */
         function handleInputChange(event){
             const {value} = event.target
             setformData(prevFormData => {
@@ -17,13 +19,14 @@
             })
         };
 
+        /* Prevent the page of refreshing, send the data in the present formData state to back-end and clear the input field */
         function handleSubmit(event){
             event.preventDefault()
             fetch('../see_all_posts',{
                 method:'POST',
                 body: JSON.stringify(formData)
             })
-            props.setUpdate(false)  
+            document.querySelector("#post_content").value = ""      
         }
 
         return ( 
@@ -55,18 +58,11 @@
     }
 
     function LikeButtons(props){
-        return (
-            props.like ? 
-                <button key={props.id} id={props.id} className="btn btn-success" onClick={(event)=>{props.func(event, props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Like</button> :
-                <button key={props.id} id={props.id} className="btn btn-danger" onClick={(event)=>{props.func(event, props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Dislike</button>
-        )
-    }
-
-    function changeButton(event, id, posted_by, liked_by, setUpdate){
+        function changeButton(event){
             event.preventDefault()
-            console.log(event)
-            // Only do actions if the post is not posted by user logged in
-            if("{{user.username}}"===posted_by){
+
+            /* Only do actions if the post is not posted by user logged in */
+            if("{{user.username}}"===props.posted_by){
                 alert(`You cannot like your post!`)
 
             } else {
@@ -74,13 +70,20 @@
                     method:'PUT',
                     body:JSON.stringify({
                     user:"{{user.username}}",
-                    post:id,
+                    post:props.id,
                     })
                 })
             };
-            setUpdate(false)
-        } 
-    
+            props.setUpdate(false)
+        };
+
+        return (
+            props.like ? 
+                <button key={props.id} id={props.id} className="btn btn-success" onClick={(event)=>{changeButton(event)}}>Like</button> :
+                <button key={props.id} id={props.id} className="btn btn-danger" onClick={(event)=>{changeButton(event)}}>Dislike</button>
+        )
+    };
+ 
     function Posts (props) {
         const [data, setData] = React.useState(null);
         const [error, setError] = React.useState(null);
@@ -97,8 +100,7 @@
             .then(posts => {
                 posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
                 setData(posts)
-                props.setUpdate(true)
-                
+                props.setUpdate(true)         
             })
             .catch(err => {
                 setError(err.message)
@@ -106,8 +108,8 @@
             })
             return {}
 
-        }, [props.update, currentPage])
-
+        }, [props.update])
+        
         function PaginationLinks(){
             const page=[]
             for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
@@ -122,7 +124,7 @@
                         <div className="card-header">
                             <h5><a href={`user/${posted_by}`}>{posted_by}</a></h5>
                             <div className='buttons' user="{{user.username}}">
-                                {posted_by != "{{user.username}}" && <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} setUpdate={props.setUpdate} func={changeButton}/>}
+                                {posted_by != "{{user.username}}" && <LikeButtons id={id} like={like} setUpdate={props.setUpdate}/>}
                             </div>
                             </div>
                         <div className="card-body">
@@ -148,8 +150,8 @@
 
     function App(){
         const auth = "{{user.is_authenticated}}" === 'False' ? false : true
-        const [update, setUpdate] = React.useState(null);
-
+        const [update, setUpdate] = React.useState(false);
+        console.log(update)
         return (
             <div>       
                 {auth && <PostForm setUpdate={setUpdate}/>}

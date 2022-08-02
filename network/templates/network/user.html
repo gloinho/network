@@ -39,29 +39,31 @@
         }
 
     function LikeButtons(props){
-            return (
-                props.like ? 
-                    <button key={props.id} id={props.id} className="btn btn-success" onClick={()=>{props.func(props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Like</button> :
-                    <button key={props.id} id={props.id} className="btn btn-danger" onClick={()=>{props.func(props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Dislike</button>
-            )
-        }
+        function changeButton(event){
+            event.preventDefault()
 
-    function changeButton(id, posted_by, liked_by, setUpdate){
-                // Only do actions if the post is not posted by user logged in
-                if("{{user.username}}"===posted_by){
-                    alert(`You cannot like your post!`)
+            /* Only do actions if the post is not posted by user logged in */
+            if("{{user.username}}"===props.posted_by){
+                alert(`You cannot like your post!`)
 
-                } else {
-                    fetch('../see_all_posts', {
-                        method:'PUT',
-                        body:JSON.stringify({
-                        user:"{{user.username}}",
-                        post:id,
-                        })
+            } else {
+                fetch('../see_all_posts', {
+                    method:'PUT',
+                    body:JSON.stringify({
+                    user:"{{user.username}}",
+                    post:props.id,
                     })
-                };
-                setUpdate(false)
-    } 
+                })
+            };
+            props.setUpdate(false)
+        };
+
+        return (
+            props.like ? 
+                <button key={props.id} id={props.id} className="btn btn-success" onClick={(event)=>{changeButton(event)}}>Like</button> :
+                <button key={props.id} id={props.id} className="btn btn-danger" onClick={(event)=>{changeButton(event)}}>Dislike</button>
+        )
+    };
 
     function UserView(props){
             const [data, setData] = React.useState(null)
@@ -112,7 +114,7 @@
                             <div className="card-header">
                                 <h5>{posted_by}</h5>
                                 <div className='buttons' user="{{user.username}}">
-                                    {posted_by != "{{user.username}}" && <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} setUpdate={props.setUpdate} func={changeButton}/>}
+                                    {posted_by != "{{user.username}}" && <LikeButtons id={id} like={like} setUpdate={props.setUpdate}/>}
                                 </div>
                             </div>
                             <div className="card-body">
