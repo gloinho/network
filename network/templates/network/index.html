@@ -58,8 +58,9 @@
         }
 
         function UserView(props){
-            const [userInfo, setUserInfo] = React.useState(null)
+            const [data, setData] = React.useState(null)
             const [updateF, setUpdateF] = React.useState(null)
+            const [error, setError] = React.useState(null)
 
             React.useEffect(()=>{
                 fetch(`user_profile/${props.user}`)
@@ -67,11 +68,16 @@
                 .then(userInfo => {
                     userInfo.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
                     props.setUpdate(true)
-                    setUserInfo(userInfo), 
+                    setData(userInfo), 
                     setUpdateF(true)})
+                .catch(err => {
+                    setError(err.message)
+                    setData(null)
+                })
+                return {}
             },[props.user, updateF, props.update])
             
-            return (userInfo &&  
+            return (data &&  
                 (<div class="container-fluid" id="profile"> 
                     <div class="row align-items-center">
                         <div class="col" id="name">
@@ -79,14 +85,14 @@
                         </div>
                         <div class="col " id="info">
                             <div class="row text-center" id="user">{props.user}</div>
-                            <div class="row" id="following">Following: {userInfo.following.length}</div>
-                            <div class="row" id="followers">Followers: {userInfo.followers.length}</div>
-                            <div class="row " id="postings">Postings: {userInfo.posts.length}</div>
-                            {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={userInfo.followers} update={setUpdateF}/>}
+                            <div class="row" id="following">Following: {data.following.length}</div>
+                            <div class="row" id="followers">Followers: {data.followers.length}</div>
+                            <div class="row " id="postings">Postings: {data.posts.length}</div>
+                            {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={data.followers} update={setUpdateF}/>}
                         </div>
                     </div>
                     <h1>{props.user}'s Posts</h1>
-                    {userInfo.posts.map(({like, id, posted_by, content, posted_at, liked_by})=> (
+                    {data.posts.map(({like, id, posted_by, content, posted_at, liked_by})=> (
                         <div className="card">
                             <div className="card-header">
                                 <h5>{posted_by}</h5>
@@ -101,6 +107,7 @@
                             <div className="card-footer text-muted">{posted_at}</div>
                         </div>
                     ))}
+                    <Pagination fetchOn={`user_profile/${props.user}`} setData={setData} setError={setError} setUpdate={props.setUpdate}/> /* FIXME */
                 </div>)
             )    
         }
@@ -189,11 +196,56 @@
                 };
                 setUpdate(false)
             } 
+        
+        function Pagination(props){
+            const [hasPrevious, setHasPrevious] = React.useState(false)
+            const [hasNext, setHasNext] = React.useState(true)
+            const [currentPage, setCurrentPage] = React.useState(1)
+            
+            function pagination(page){
+                fetch(`${props.fetchOn}?page=${page}`) 
+                .then(response => {
+                    if (!response.ok){
+                        throw new Error(`HTTP Error Status ${response.status}`)
+                    };
+                    return response.json()
+                })
+                .then(posts => {
+                    Array.isArray(posts) ?
+                    posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
+                    : posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true)
+                    props.setData(posts)
+                    props.setUpdate(true)    
+                })
+                .catch(err => {
+                    props.setError(err.message)
+                    props.setData(null)
+                })
+                setCurrentPage(page)
+                page > 1 ? setHasPrevious(true) : setHasPrevious(false)
+                "{{pagination.paginator.num_pages}}" > 1 && page < "{{pagination.paginator.num_pages}}" ? setHasNext(true):setHasNext(false)
+            }
+
+            function PaginationLinks(){
+                const page=[]
+                for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
+                    page.push(<li class="page-item"><a class="page-link" onClick={()=> pagination(i)}>{i}</a></li>)
+                }
+                return page.map(li => li)         
+            }
+            return  <nav>
+                        <ul class="pagination">
+                            {hasPrevious && <li class="page-item"><a class="page-link" onClick={()=> pagination(currentPage-1)}>Previous</a></li>}
+                            <PaginationLinks/>
+                            {hasNext && <li class="page-item"><a class="page-link" onClick={()=> pagination(currentPage+1)}>Next</a></li>}
+                        </ul>
+                    </nav>
+        }
 
         function Posts (props) {
             const [data, setData] = React.useState(null);
             const [error, setError] = React.useState(null);
-
+            
             React.useEffect(() => {
                 fetch('all_posts')
                 .then(response => {
@@ -232,6 +284,7 @@
                             <div className="card-footer text-muted">{posted_at}</div>
                         </div>
                     ))}
+                    <Pagination fetchOn={'all_posts'} setData={setData} data={data} setError={setError} setUpdate={props.setUpdate}/>
                 </div>;
         }
 

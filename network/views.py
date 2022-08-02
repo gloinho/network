@@ -1,4 +1,3 @@
-from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
@@ -7,13 +6,17 @@ from django.urls import reverse
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
-from django.db.models.base import ObjectDoesNotExist
-
 from .models import User, Post, Connections
+from django.core.paginator import Paginator
+
 
 
 def index(request):
-    return render(request, "network/index.html")
+    # Set up Pagination
+    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
+    page = request.GET.get('page')
+    posts = p.get_page(page)
+    return render(request, "network/index.html", {'pagination':posts})
 
 
 def login_view(request):
@@ -80,13 +83,11 @@ def see_all_posts(request):
             post.liked_by.remove(user)
             return JsonResponse({
                 'post':data.get('post'),
-                'liked':'Disliked',
             })
         elif user not in post.liked_by.all():
             post.liked_by.add(user)
             return JsonResponse({
                 'post':data.get('post'),
-                'liked':'Liked',
             })
             
     if request.method == 'POST':
@@ -96,17 +97,24 @@ def see_all_posts(request):
         posted_by = User.objects.get(username=data.get('posted_by'))
         Post.objects.create(posted_by=posted_by, content=content)
         
-    all_posts = Post.objects.order_by("-posted_at").all()
-    return JsonResponse([post.serialize() for post in all_posts], safe=False)
+    # Set up Pagination
+    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
+    page = request.GET.get('page')
+    posts = p.get_page(page)
+    return JsonResponse([post.serialize() for post in posts], safe=False)
 
 def user_profile(request, username):
     user = User.objects.get(username=username)
     connections = user.connections
     following = [following.username for following in connections.following.all()]
     followers = [follower.username for follower in connections.followers.all()]
-    userpost = Post.objects.order_by("-posted_at").filter(posted_by=user)
+ 
+    # Set up Pagination
+    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 3)
+    page = request.GET.get('page')
+    posts = p.get_page(page)
     
-    return JsonResponse({'posts': [post.serialize() for post in userpost], 'following':following,'followers':followers }, safe=False)
+    return JsonResponse({'posts': [post.serialize() for post in posts], 'following':following,'followers':followers }, safe=False)
 
 
 @csrf_exempt   
