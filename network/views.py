@@ -116,6 +116,8 @@ def user_profile(request, username):
     
     return JsonResponse({'posts': [post.serialize() for post in posts], 'following':following,'followers':followers }, safe=False)
 
+def user_page(request, username):
+    return render(request, 'network/user.html', {'user':username})
 
 @csrf_exempt   
 def follow(request):

@@ -1,0 +1,68 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+<div class="container-fluid" id="root"> 
+</div>
+<script type="text/babel">
+    function UserView(props){
+            const [data, setData] = React.useState(null)
+            const [updateF, setUpdateF] = React.useState(null)
+            const [error, setError] = React.useState(null)
+
+            React.useEffect(()=>{
+                fetch(`user_profile/${props.user}`)
+                .then(response => response.json())
+                .then(userInfo => {
+                    userInfo.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
+                    props.setUpdate(true)
+                    setData(userInfo), 
+                    setUpdateF(true)})
+                .catch(err => {
+                    setError(err.message)
+                    setData(null)
+                })
+                return {}
+            },[props.user, updateF, props.update])
+            
+            return (data &&  
+                (<div class="container-fluid" id="profile"> 
+                    <div class="row align-items-center">
+                        <div class="col" id="name">
+                            <img src="https://st3.depositphotos.com/6672868/13701/v/380/depositphotos_137014128-stock-illustration-user-profile-icon.jpg?forcejpeg=true" height="200" alt="profile placeholder"></img>
+                        </div>
+                        <div class="col " id="info">
+                            <div class="row text-center" id="user">{props.user}</div>
+                            <div class="row" id="following">Following: {data.following.length}</div>
+                            <div class="row" id="followers">Followers: {data.followers.length}</div>
+                            <div class="row " id="postings">Postings: {data.posts.length}</div>
+                        </div>
+                    </div>
+                    <h1>{props.user}'s Posts</h1>
+                    {data.posts.map(({like, id, posted_by, content, posted_at, liked_by})=> (
+                        <div className="card">
+                            <div className="card-header">
+                                <h5>{posted_by}</h5>
+                            </div>
+                            <div className="card-body">
+                                <p className="card-text">{content}</p>
+                            </div>
+                            <div className="card-footer text-muted">{posted_at}</div>
+                        </div>
+                    ))}
+                </div>)
+            )    
+        }
+    
+    function App(){
+        const [update, setUpdate] = React.useState(null)
+
+        return <div>
+            {"{{user}}"}
+            <UserView user={"{{user}}"} update={update} setUpdate={setUpdate}/>
+            </div>
+    }
+
+ReactDOM.render(<App />,document.querySelector('#root'))
+</script>
+
+{%endblock%}
