@@ -72,6 +72,12 @@ def register(request):
     else:
         return render(request, "network/register.html")
 
+def all_posts_view(request):
+    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
+    page = request.GET.get('page')
+    posts = p.get_page(page)
+    return render(request, 'network/allposts.html', {'pagination':posts})
+
 @csrf_exempt
 def see_all_posts(request):
     if request.method == 'PUT':
@@ -103,6 +109,7 @@ def see_all_posts(request):
     posts = p.get_page(page)
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
+
 def user_profile(request, username):
     user = User.objects.get(username=username)
     connections = user.connections
@@ -116,10 +123,29 @@ def user_profile(request, username):
     
     return JsonResponse({'posts': [post.serialize() for post in posts], 'following':following,'followers':followers }, safe=False)
 
-def user_page(request, username):
-    return render(request, 'network/user.html', {'user':username})
 
-@csrf_exempt   
+def user_page(request, username):
+    user = User.objects.get(username=username)
+    # Set up Pagination
+    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 3)
+    page = request.GET.get('page')
+    posts = p.get_page(page)
+    
+    return render(request, 'network/user.html', {'username':username, 'pagination':posts})
+ 
+ 
+def following_posts (request):
+    user = User.objects.get(username=request.user)
+    following = user.connections.following.all()
+    queryset_array = [User.objects.get(username=u).posts.order_by("-posted_at").all() for u in following]
+    posts = []
+    for queryset in queryset_array:
+        for post in queryset:
+            posts.append(post.serialize())
+    
+    return JsonResponse({'posts':posts})
+    
+@csrf_exempt
 def follow(request):
     data = json.loads(request.body)
     user = User.objects.get(username=request.user)
@@ -137,15 +163,3 @@ def follow(request):
     following = [u.username for u in user.connections.following.all()]
     print(following)
     return JsonResponse({'following':following}, safe=False)
-      
-def following_posts (request):
-    user = User.objects.get(username=request.user)
-    following = user.connections.following.all()
-    queryset_array = [User.objects.get(username=u).posts.order_by("-posted_at").all() for u in following]
-    posts = []
-    for queryset in queryset_array:
-        for post in queryset:
-            posts.append(post.serialize())
-    
-    return JsonResponse({'posts':posts})
-    

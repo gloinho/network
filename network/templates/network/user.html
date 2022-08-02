@@ -4,13 +4,118 @@
 <div class="container-fluid" id="root"> 
 </div>
 <script type="text/babel">
+    function Pagination(props){
+            const [hasPrevious, setHasPrevious] = React.useState(false)
+            const [hasNext, setHasNext] = React.useState(true)
+            const [currentPage, setCurrentPage] = React.useState(1)
+            
+            function pagination(page){
+                fetch(`${props.fetchOn}?page=${page}`) 
+                .then(response => {
+                    if (!response.ok){
+                        throw new Error(`HTTP Error Status ${response.status}`)
+                    };
+                    return response.json()
+                })
+                .then(posts => {
+                    Array.isArray(posts) ?
+                    posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
+                    : posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true)
+                    props.setData(posts)
+                    props.setUpdate(true)    
+                })
+                .catch(err => {
+                    props.setError(err.message)
+                    props.setData(null)
+                })
+                setCurrentPage(page)
+                page > 1 ? setHasPrevious(true) : setHasPrevious(false)
+                "{{pagination.paginator.num_pages}}" > 1 && page < "{{pagination.paginator.num_pages}}" ? setHasNext(true):setHasNext(false)
+            }
+
+            function PaginationLinks(){
+                const page=[]
+                for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
+                    page.push(<li class="page-item"><button class="page-link" onClick={()=> pagination(i)}>{i}</button></li>)
+                }
+                return page.map(li => li)        
+            }
+            return  <nav>
+                        <ul class="pagination">
+                            {hasPrevious ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage-1)}>Previous</button></li>:
+                            <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Previous</button></li>}
+                            <PaginationLinks/>
+                            {hasNext ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage+1)}>Next</button></li>:
+                            <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Next</button></li>}
+                        </ul>
+                    </nav>
+        }
+    function FollowButton(props){
+        const [isFollowed, setIsFollowed] = React.useState(props.followers.includes("{{user.username}}") ? true : false)
+        
+        function followAction(){
+            fetch('../follow',{
+                method:'PUT',
+                body:JSON.stringify({
+                    target:props.user
+                })
+            })
+            .then(response=> response.json())
+            .then(message => {message.error? alert(message.error) : alert(message.following)})  
+            setIsFollowed(prevIsFollowed => !prevIsFollowed)  
+            props.update(false)             
+        }
+        return <button id="followbutton" onClick={()=>followAction()}>{isFollowed ? 'Unfollow' : 'Follow'}</button>
+        
+    }
+
+    function WhoLiked(props){
+            let string = 'Nobody liked this yet'
+
+            if(props.liked_by.length>0){
+                        if (props.liked_by.length >=3){
+                            string = `${props.liked_by[0]}, ${props.liked_by[1]} and ${props.liked_by.length-2} more liked this.`
+                        } else if (props.liked_by.length>1){
+                            string = `${props.liked_by[0]} and ${props.liked_by[1]} liked this.` 
+                        } else if (props.liked_by.length=1){
+                            string = `${props.liked_by[0]} liked this.`
+                        } 
+                    }
+            return <div className="text-muted">{string}</div>
+        }
+
+    function LikeButtons(props){
+            return (
+                props.like ? 
+                    <button key={props.id} id={props.id} className="btn btn-success" onClick={()=>{props.func(props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Like</button> :
+                    <button key={props.id} id={props.id} className="btn btn-danger" onClick={()=>{props.func(props.id, props.posted_by, props.liked_by, props.setUpdate)}}>Dislike</button>
+            )
+        }
+
+    function changeButton(id, posted_by, liked_by, setUpdate){
+                // Only do actions if the post is not posted by user logged in
+                if("{{user.username}}"===posted_by){
+                    alert(`You cannot like your post!`)
+
+                } else {
+                    fetch('../all_posts', {
+                        method:'PUT',
+                        body:JSON.stringify({
+                        user:"{{user.username}}",
+                        post:id,
+                        })
+                    })
+                };
+                setUpdate(false)
+    } 
+
     function UserView(props){
             const [data, setData] = React.useState(null)
             const [updateF, setUpdateF] = React.useState(null)
             const [error, setError] = React.useState(null)
 
             React.useEffect(()=>{
-                fetch(`user_profile/${props.user}`)
+                fetch(`../user_profile/${props.user}`)
                 .then(response => response.json())
                 .then(userInfo => {
                     userInfo.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
@@ -35,6 +140,7 @@
                             <div class="row" id="following">Following: {data.following.length}</div>
                             <div class="row" id="followers">Followers: {data.followers.length}</div>
                             <div class="row " id="postings">Postings: {data.posts.length}</div>
+                            {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={data.followers} update={setUpdateF}/>}
                         </div>
                     </div>
                     <h1>{props.user}'s Posts</h1>
@@ -42,26 +148,28 @@
                         <div className="card">
                             <div className="card-header">
                                 <h5>{posted_by}</h5>
+                                <div className='buttons' user="{{user.username}}">
+                                    {posted_by != "{{user.username}}" && <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} setUpdate={props.setUpdate} func={changeButton}/>}
+                                </div>
                             </div>
                             <div className="card-body">
                                 <p className="card-text">{content}</p>
+                                <WhoLiked liked_by={liked_by} />
                             </div>
                             <div className="card-footer text-muted">{posted_at}</div>
                         </div>
                     ))}
+                    <Pagination fetchOn={`../user_profile/${props.user}`} setData={setData} data={data} setError={setError} setUpdate={props.setUpdate}/>
                 </div>)
             )    
         }
     
     function App(){
         const [update, setUpdate] = React.useState(null)
-
         return <div>
-            {"{{user}}"}
-            <UserView user={"{{user}}"} update={update} setUpdate={setUpdate}/>
+            <UserView user={"{{username}}"} update={update} setUpdate={setUpdate}/>
             </div>
     }
-
 ReactDOM.render(<App />,document.querySelector('#root'))
 </script>
 

@@ -23,7 +23,7 @@
                     <ul className="navbar-nav mr-auto"> 
                         <li className="nav-item">
                             {"{%if user.is_authenticated%}"}
-                                <button className="nav-link user_profile" id="user_profile"><strong>{"{{user.username}}"}</strong></button>
+                                <a href={"{% url 'userpage' user.username %}"} className="nav-link user_profile" id="user_profile"><strong>{"{{user.username}}"}</strong></a>
                             {"{%endif%}"}
                         </li>                              
                         <li className="nav-item">
@@ -33,7 +33,7 @@
                             <a className="nav-link" href={"{% url 'logout' %}"}>Log Out</a>
                         </li>
                         <li className="nav-item">
-                                <button className="nav-link" id="allposts">All Posts</button>
+                                <a className="nav-link" id="allposts" href="{% url 'allposts' %}">All Posts</a>
                         </li>
                     </ul>
                     :
