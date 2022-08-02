@@ -10,10 +10,11 @@ urlpatterns = [
     path("register", views.register, name="register"),
     path("user/<str:username>", views.user_page, name="userpage"),
     path('allposts', views.all_posts_view, name="allposts"),
+    path('following', views.following_posts_view, name="following"),
     
     # API Routes
     path("user_profile/<str:username>", views.user_profile, name="user_profile"),
     path('follow', views.follow, name='follow'),
     path("see_all_posts", views.see_all_posts, name="see_all_posts"),
-    path('following_posts', views.following_posts, name="following_posts")
+    path('see_following_posts', views.see_following_posts, name="see_following_posts"),
 ]

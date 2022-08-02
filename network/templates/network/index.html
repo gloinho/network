@@ -5,39 +5,6 @@
     </div>
 
     <script type="text/babel">
-        function FollowingView(props){
-            const [data, setData] = React.useState(null)
-
-            React.useEffect(()=> {
-                fetch('following_posts')
-                .then(response => response.json())
-                .then(posts => {
-                    posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
-                    setData(posts.posts)
-                    props.setUpdate(true)})
-            }, [props.update])
-
-            console.log(data)
-            return <div className="container-fluid">
-                        <h1>Your Feed</h1>
-                        {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
-                                <div className="card">
-                                        <div className="card-header">
-                                            <h5><button id="user_button" onClick={()=>props.profile(posted_by)}>{posted_by}</button></h5>
-                                            <div className='buttons' user="{{user.username}}">
-                                                <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} setUpdate={props.setUpdate} func={changeButton}/>
-                                            </div>
-                                        </div>
-                                        <div className="card-body">
-                                            <p className="card-text">{content}</p>
-                                            <WhoLiked liked_by={liked_by} />
-                                        </div>
-                                        <div className="card-footer text-muted">{posted_at}</div>
-                                    </div>
-                                ))}
-                            </div>; 
-        }
-
         function Home(){
             return (
                 <div className="home">

@@ -4,52 +4,6 @@
 <div class="container-fluid" id="root"> 
 </div>
 <script type="text/babel">
-    function Pagination(props){
-            const [hasPrevious, setHasPrevious] = React.useState(false)
-            const [hasNext, setHasNext] = React.useState(true)
-            const [currentPage, setCurrentPage] = React.useState(1)
-            
-            function pagination(page){
-                fetch(`${props.fetchOn}?page=${page}`) 
-                .then(response => {
-                    if (!response.ok){
-                        throw new Error(`HTTP Error Status ${response.status}`)
-                    };
-                    return response.json()
-                })
-                .then(posts => {
-                    Array.isArray(posts) ?
-                    posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
-                    : posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true)
-                    props.setData(posts)
-                    props.setUpdate(true)    
-                })
-                .catch(err => {
-                    props.setError(err.message)
-                    props.setData(null)
-                })
-                setCurrentPage(page)
-                page > 1 ? setHasPrevious(true) : setHasPrevious(false)
-                "{{pagination.paginator.num_pages}}" > 1 && page < "{{pagination.paginator.num_pages}}" ? setHasNext(true):setHasNext(false)
-            }
-
-            function PaginationLinks(){
-                const page=[]
-                for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
-                    page.push(<li class="page-item"><button class="page-link" onClick={()=> pagination(i)}>{i}</button></li>)
-                }
-                return page.map(li => li)        
-            }
-            return  <nav>
-                        <ul class="pagination">
-                            {hasPrevious ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage-1)}>Previous</button></li>:
-                            <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Previous</button></li>}
-                            <PaginationLinks/>
-                            {hasNext ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage+1)}>Next</button></li>:
-                            <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Next</button></li>}
-                        </ul>
-                    </nav>
-        }
     function FollowButton(props){
         const [isFollowed, setIsFollowed] = React.useState(props.followers.includes("{{user.username}}") ? true : false)
         
@@ -65,7 +19,7 @@
             setIsFollowed(prevIsFollowed => !prevIsFollowed)  
             props.update(false)             
         }
-        return <button id="followbutton" onClick={()=>followAction()}>{isFollowed ? 'Unfollow' : 'Follow'}</button>
+        return <button className="btn btn-info" id="followbutton" onClick={()=>followAction()}>{isFollowed ? 'Unfollow' : 'Follow'}</button>
         
     }
 
@@ -98,7 +52,7 @@
                     alert(`You cannot like your post!`)
 
                 } else {
-                    fetch('../all_posts', {
+                    fetch('../see_all_posts', {
                         method:'PUT',
                         body:JSON.stringify({
                         user:"{{user.username}}",
@@ -113,9 +67,10 @@
             const [data, setData] = React.useState(null)
             const [updateF, setUpdateF] = React.useState(null)
             const [error, setError] = React.useState(null)
+            const [currentPage, setCurrentPage] = React.useState("{{pagination.number}}");
 
             React.useEffect(()=>{
-                fetch(`../user_profile/${props.user}`)
+                fetch(`../user_profile/${props.user}?page=${currentPage}`)
                 .then(response => response.json())
                 .then(userInfo => {
                     userInfo.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
@@ -127,7 +82,15 @@
                     setData(null)
                 })
                 return {}
-            },[props.user, updateF, props.update])
+            },[props.user, updateF, props.update, currentPage])
+        
+        function PaginationLinks(){
+            const page=[]
+            for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
+                page.push(<li class="page-item"><a class="page-link" href={`?page=${i}`}>{i}</a></li>)
+            }
+            return page.map(li => li)  
+        }  
             
             return (data &&  
                 (<div class="container-fluid" id="profile"> 
@@ -159,15 +122,27 @@
                             <div className="card-footer text-muted">{posted_at}</div>
                         </div>
                     ))}
-                    <Pagination fetchOn={`../user_profile/${props.user}`} setData={setData} data={data} setError={setError} setUpdate={props.setUpdate}/>
+                    <nav>
+                    <ul class="pagination">
+                        {"{%if pagination.has_previous%}"}
+                            <li class="page-item"><a href="?page={{pagination.previous_page_number}}"class="page-link">Previous</a></li>
+                        {"{%endif%}"}
+                        <PaginationLinks/>
+                        {"{%if pagination.has_next%}"}
+                            <li class="page-item"><a href={"?page={{pagination.next_page_number}}"}class="page-link">Next</a></li>
+                        {"{%endif%}"}
+                    </ul>
+                </nav>
                 </div>)
             )    
         }
     
     function App(){
+        const auth = "{{user.is_authenticated}}" === 'False' ? false : true
         const [update, setUpdate] = React.useState(null)
+
         return <div>
-            <UserView user={"{{username}}"} update={update} setUpdate={setUpdate}/>
+                {auth && <UserView user={"{{username}}"} update={update} setUpdate={setUpdate}/>}
             </div>
     }
 ReactDOM.render(<App />,document.querySelector('#root'))

@@ -4,47 +4,6 @@
 <div class="container-fluid" id="root"> 
 </div>
 <script type="text/babel">
-    function FollowingView(props){
-        const [data, setData] = React.useState(null)
-
-        React.useEffect(()=> {
-            fetch('following_posts')
-            .then(response => response.json())
-            .then(posts => {
-                posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
-                setData(posts.posts)
-                props.setUpdate(true)})
-        }, [props.update])
-
-        console.log(data)
-        return <div className="container-fluid">
-                    <h1>Your Feed</h1>
-                    {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
-                            <div className="card">
-                                    <div className="card-header">
-                                        <h5><button id="user_button" onClick={()=>props.profile(posted_by)}>{posted_by}</button></h5>
-                                        <div className='buttons' user="{{user.username}}">
-                                            <LikeButtons id={id} liked_by={liked_by} like={like} posted_by={posted_by} setUpdate={props.setUpdate} func={changeButton}/>
-                                        </div>
-                                    </div>
-                                    <div className="card-body">
-                                        <p className="card-text">{content}</p>
-                                        <WhoLiked liked_by={liked_by} />
-                                    </div>
-                                    <div className="card-footer text-muted">{posted_at}</div>
-                                </div>
-                            ))}
-                        </div>; 
-    }
-
-    function Home(){
-        return (
-            <div className="home">
-                <img src="https://miro.medium.com/max/1200/1*nm4VZt2HpZj0CW3FL3b-eg.png"/>
-            </div>
-        )    
-    }
-
     function PostForm(props){
         const [formData, setformData] = React.useState({
             posted_by: "{{user.username}}",
@@ -60,13 +19,11 @@
 
         function handleSubmit(event){
             event.preventDefault()
-            fetch('all_posts',{
+            fetch('../see_all_posts',{
                 method:'POST',
                 body: JSON.stringify(formData)
             })
-            props.setUpdate(false)
-            props.setShowPosts(true)
-              
+            props.setUpdate(false)  
         }
 
         return ( 
@@ -124,59 +81,13 @@
             setUpdate(false)
         } 
     
-    function Pagination(props){
-        const [hasPrevious, setHasPrevious] = React.useState(false)
-        const [hasNext, setHasNext] = React.useState(true)
-        const [currentPage, setCurrentPage] = React.useState(1)
-        
-        function pagination(page){
-            fetch(`${props.fetchOn}?page=${page}`) 
-            .then(response => {
-                if (!response.ok){
-                    throw new Error(`HTTP Error Status ${response.status}`)
-                };
-                return response.json()
-            })
-            .then(posts => {
-                Array.isArray(posts) ?
-                posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true )
-                : posts.posts.map(post => post.liked_by.includes("{{user.username}}") ? post.like = false : post.like = true)
-                props.setData(posts)
-                props.setUpdate(true)    
-            })
-            .catch(err => {
-                props.setError(err.message)
-                props.setData(null)
-            })
-            setCurrentPage(page)
-            page > 1 ? setHasPrevious(true) : setHasPrevious(false)
-            "{{pagination.paginator.num_pages}}" > 1 && page < "{{pagination.paginator.num_pages}}" ? setHasNext(true):setHasNext(false)
-        }
-
-        function PaginationLinks(){
-            const page=[]
-            for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
-                page.push(<li class="page-item"><button class="page-link" onClick={()=> pagination(i)}>{i}</button></li>)
-            }
-            return page.map(li => li)         
-        }
-        return  <nav>
-                    <ul class="pagination">
-                        {hasPrevious ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage-1)}>Previous</button></li>:
-                        <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Previous</button></li>}
-                        <PaginationLinks/>
-                        {hasNext ? <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage+1)}>Next</button></li>:
-                        <li class="page-item"><button class="page-link" onClick={()=> pagination(currentPage)}>Next</button></li>}
-                    </ul>
-                </nav>
-    }
-
     function Posts (props) {
         const [data, setData] = React.useState(null);
         const [error, setError] = React.useState(null);
+        const [currentPage, setCurrentPage] = React.useState("{{pagination.number}}");
         
         React.useEffect(() => {
-            fetch('../see_all_posts')
+            fetch(`../see_all_posts?page=${currentPage}`)
             .then(response => {
                 if (!response.ok){
                     throw new Error(`HTTP Error Status ${response.status}`)
@@ -195,7 +106,15 @@
             })
             return {}
 
-        }, [props.update])
+        }, [props.update, currentPage])
+
+        function PaginationLinks(){
+            const page=[]
+            for (let i=1; i<= "{{pagination.paginator.num_pages}}"; i++){
+                page.push(<li class="page-item"><a class="page-link" href={`?page=${i}`}>{i}</a></li>)
+            }
+            return page.map(li => li)  
+        }   
 
         return <div className="container-fluid"> 
             {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
@@ -213,7 +132,17 @@
                         <div className="card-footer text-muted">{posted_at}</div>
                     </div>
                 ))}
-                <Pagination fetchOn={'../see_all_posts'} setData={setData} data={data} setError={setError} setUpdate={props.setUpdate}/>
+                <nav>
+                    <ul class="pagination">
+                        {"{%if pagination.has_previous%}"}
+                            <li class="page-item"><a href="?page={{pagination.previous_page_number}}"class="page-link">Previous</a></li>
+                        {"{%endif%}"}
+                        <PaginationLinks/>
+                        {"{%if pagination.has_next%}"}
+                            <li class="page-item"><a href={"?page={{pagination.next_page_number}}"}class="page-link">Next</a></li>
+                        {"{%endif%}"}
+                    </ul>
+                </nav>
             </div>;
     }
 
@@ -224,7 +153,7 @@
         return (
             <div>       
                 {auth && <PostForm setUpdate={setUpdate}/>}
-                <Posts setUpdate={setUpdate} update={update} />
+                {auth && <Posts setUpdate={setUpdate} update={update} />}
             </div>
         )
     }  

@@ -12,11 +12,7 @@ from django.core.paginator import Paginator
 
 
 def index(request):
-    # Set up Pagination
-    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
-    page = request.GET.get('page')
-    posts = p.get_page(page)
-    return render(request, "network/index.html", {'pagination':posts})
+    return render(request, "network/index.html")
 
 
 def login_view(request):
@@ -73,7 +69,7 @@ def register(request):
         return render(request, "network/register.html")
 
 def all_posts_view(request):
-    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
+    p = Paginator(Post.objects.order_by("-posted_at").all(), 10)
     page = request.GET.get('page')
     posts = p.get_page(page)
     return render(request, 'network/allposts.html', {'pagination':posts})
@@ -104,7 +100,7 @@ def see_all_posts(request):
         Post.objects.create(posted_by=posted_by, content=content)
         
     # Set up Pagination
-    p = Paginator(Post.objects.order_by("-posted_at").all(), 3)
+    p = Paginator(Post.objects.order_by("-posted_at").all(), 10)
     page = request.GET.get('page')
     posts = p.get_page(page)
     return JsonResponse([post.serialize() for post in posts], safe=False)
@@ -117,7 +113,7 @@ def user_profile(request, username):
     followers = [follower.username for follower in connections.followers.all()]
  
     # Set up Pagination
-    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 3)
+    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 10)
     page = request.GET.get('page')
     posts = p.get_page(page)
     
@@ -127,23 +123,38 @@ def user_profile(request, username):
 def user_page(request, username):
     user = User.objects.get(username=username)
     # Set up Pagination
-    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 3)
+    p = Paginator(Post.objects.order_by("-posted_at").filter(posted_by=user), 10)
     page = request.GET.get('page')
     posts = p.get_page(page)
     
     return render(request, 'network/user.html', {'username':username, 'pagination':posts})
  
- 
-def following_posts (request):
+def following_posts_view(request):
     user = User.objects.get(username=request.user)
     following = user.connections.following.all()
     queryset_array = [User.objects.get(username=u).posts.order_by("-posted_at").all() for u in following]
     posts = []
     for queryset in queryset_array:
         for post in queryset:
-            posts.append(post.serialize())
+            posts.append(post)
+    p = Paginator(posts, 10)
+    page = request.GET.get('page')
+    followingposts = p.get_page(page)
+    return render(request, 'network/following.html', {'pagination':followingposts})
+
+def see_following_posts (request):
+    user = User.objects.get(username=request.user)
+    following = user.connections.following.all()
+    queryset_array = [User.objects.get(username=u).posts.order_by("-posted_at").all() for u in following]
+    posts = []
+    for queryset in queryset_array:
+        for post in queryset:
+            posts.append(post)
+    p = Paginator(posts, 10)
+    page = request.GET.get('page')
+    followingposts = p.get_page(page)
     
-    return JsonResponse({'posts':posts})
+    return JsonResponse({'posts':[post.serialize() for post in followingposts]})
     
 @csrf_exempt
 def follow(request):
