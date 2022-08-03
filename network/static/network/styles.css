@@ -1,13 +1,71 @@
-.card{
-    margin-bottom: 20px;
+body {
+    
+    font-family: 'Catamaran', sans-serif;
 }
 
+#main-nav{
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+}
+
+/* HOME PAGE CSS */
 .home{
     display: flex;
     justify-content: center;
-    padding: 50px;
+    align-items: center;
+    margin-top: 150px;
 }
 .home > img{
     border-radius: 20px;
+    width: 50%;
 }
 
+#root{
+    margin-top: 20px;
+}
+
+/* POSTS CSS */
+.card{
+    margin-bottom: 20px;
+    box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+}
+
+#post-form{
+    padding: 30px;
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px, rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+
+}
+#latest-posts{
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* USERPAGE CSS */
+#user{
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 12px;
+    margin-bottom: 50px;
+    background-color: #ffffff;
+    padding: 30px;
+}
+
+#name > img{
+    border-radius: 20px;
+}
+
+#username{
+    font-size: 50px;
+    font-weight: 500;
+
+}
+
+.info{
+    font-size: 20px;
+    font-weight: 300;
+}
+
+#username-posts{
+    text-align: center;
+}
+
+#your-feed-title, #feed-empty{
+    text-align: center;
+}

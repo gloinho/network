@@ -17,7 +17,7 @@
                 })
             })
             .then(response=> response.json())
-            .then(message => {message.error? alert(message.error) : alert(message.following)})  
+            .then(message => {message.error? alert(message.error) : alert(message.message)})
             setIsFollowed(prevIsFollowed => !prevIsFollowed)  
             props.update(false)             
         }
@@ -154,20 +154,18 @@
         }  
             
             return (data &&  
-                (<div class="container-fluid" id="profile"> 
-                    <div class="row align-items-center">
-                        <div class="col" id="name">
-                            <img src="https://st3.depositphotos.com/6672868/13701/v/380/depositphotos_137014128-stock-illustration-user-profile-icon.jpg?forcejpeg=true" height="200" alt="profile placeholder"></img>
+                (<div className="container-fluid"> 
+                    <div className="row justify-content-center align-items-center" id="user">
+                        <div className="col align-items-center" id="name">
+                            <div className="col info" id="username">{props.user}</div>
                         </div>
-                        <div class="col " id="info">
-                            <div class="row text-center" id="user">{props.user}</div>
-                            <div class="row" id="following">Following: {data.following.length}</div>
-                            <div class="row" id="followers">Followers: {data.followers.length}</div>
-                            <div class="row " id="postings">Postings: {data.posts.length}</div>
-                            {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={data.followers} update={setUpdateF}/>}
-                        </div>
+                        <div className="col info" id="following">Following: {data.following.length}</div>
+                        <div className="col info" id="followers">Followers: {data.followers.length}</div>
+                        <div className="col info" id="postings">Postings: {data.posts.length}</div>
+                        {props.user !== "{{user.username}}" && <FollowButton user={props.user} followers={data.followers} update={setUpdateF}/>}
                     </div>
-                    <h1>{props.user}'s Posts</h1>
+
+                    <h1 className="username" id="username-posts">{props.user}'s Posts</h1>
                     {data.posts.map(({like, id, posted_by, content, posted_at, liked_by})=> (
                         <div className="card">
                             <div className="card-header">
@@ -203,9 +201,8 @@
         const auth = "{{user.is_authenticated}}" === 'False' ? false : true
         const [update, setUpdate] = React.useState(null)
 
-        return <div>
-                {auth && <UserView user={"{{username}}"} update={update} setUpdate={setUpdate}/>}
-            </div>
+        return auth && <UserView user={"{{username}}"} update={update} setUpdate={setUpdate}/>
+            
     }
 ReactDOM.render(<App />,document.querySelector('#root'))
 </script>

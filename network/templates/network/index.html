@@ -5,10 +5,24 @@
     </div>
 
     <script type="text/babel">
+        function Footer(){
+            return (
+                <nav className="navbar navbar-dark bg-dark fixed-bottom justify-content-center">
+                    <ul className="navbar-nav" >
+                        <li className="nav-item">
+                            <a className="nav-link" href="http://github.com/gloinho">Designed by Anastacio Gomes</a>      
+                        </li>
+                    </ul>
+                </nav>
+            )
+        }
         function Home(){
             return (
-                <div className="home">
-                    <img src="https://miro.medium.com/max/1200/1*nm4VZt2HpZj0CW3FL3b-eg.png"/>
+                <div className="container-fluid">
+                    <div className="home">
+                        <h1>Twitter-like social network website for making posts and following users.</h1>
+                        <img src="https://pbs.twimg.com/media/DhMYDSaXcAAaTtK.jpg"/>
+                    </div> 
                 </div>
             )    
         }
@@ -17,6 +31,7 @@
             return (
                 <div>       
                     <Home/>
+                    <Footer/>
                 </div>
             )
         }  

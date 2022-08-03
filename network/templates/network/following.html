@@ -70,7 +70,7 @@
         }  
 
         return <div className="container-fluid">
-                    <h1>Your Feed</h1>
+                    <h1 id="your-feed-title">Your Feed</h1>
                     {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                             <div className="card">
                                     <div className="card-header">
@@ -86,17 +86,20 @@
                                     <div className="card-footer text-muted">{posted_at}</div>
                                 </div>
                             ))}
+                            {"{%if pagination.has_previous and pagination.has_next%}"}
                             <nav>
-                            <ul class="pagination">
-                                {"{%if pagination.has_previous%}"}
+                                <ul class="pagination">
+                                    {"{%if pagination.has_previous%}"}
                                     <li class="page-item"><a href="?page={{pagination.previous_page_number}}"class="page-link">Previous</a></li>
-                                {"{%endif%}"}
-                                <PaginationLinks/>
-                                {"{%if pagination.has_next%}"}
+                                    {"{%endif%}"}
+                                    <PaginationLinks/>
+                                    {"{%if pagination.has_next%}"}
                                     <li class="page-item"><a href={"?page={{pagination.next_page_number}}"}class="page-link">Next</a></li>
-                                {"{%endif%}"}
-                            </ul>
-                        </nav>   
+                                    {"{%endif%}"}
+                                </ul>
+                            </nav>
+                            {"{%endif%}"}
+                                    
                         </div>;           
     }
     

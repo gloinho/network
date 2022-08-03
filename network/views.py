@@ -7,6 +7,7 @@ import json
 from django.views.decorators.csrf import csrf_exempt
 from .models import User, Post, Connections
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
 
 
@@ -16,7 +17,7 @@ def index(request):
 
 def login_view(request):
     if request.method == "POST":
-
+        print(request.POST)
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
@@ -68,6 +69,7 @@ def register(request):
         return render(request, "network/register.html")
 
 
+@login_required
 def all_posts_view(request):
     # Set up Pagination to put in the html context.
     
@@ -77,6 +79,7 @@ def all_posts_view(request):
     return render(request, 'network/allposts.html', {'pagination':posts})
 
 
+@login_required
 @csrf_exempt
 def see_all_posts(request):
     if request.method == 'PUT':
@@ -111,6 +114,7 @@ def see_all_posts(request):
     return JsonResponse([post.serialize() for post in posts], safe=False)
 
 
+@login_required
 def user_profile(request, username):
     user = User.objects.get(username=username)
     
@@ -127,6 +131,7 @@ def user_profile(request, username):
     return JsonResponse({'posts': [post.serialize() for post in posts], 'following':following,'followers':followers }, safe=False)
 
 
+@login_required
 def user_page(request, username):
     user = User.objects.get(username=username)
     
@@ -138,6 +143,7 @@ def user_page(request, username):
     return render(request, 'network/user.html', {'username':username, 'pagination':posts})
  
  
+@login_required
 def following_posts_view(request):
     user = User.objects.get(username=request.user)
     
@@ -160,6 +166,7 @@ def following_posts_view(request):
     return render(request, 'network/following.html', {'pagination':followingposts})
 
 
+@login_required
 def see_following_posts (request):
     user = User.objects.get(username=request.user)
     
@@ -181,8 +188,9 @@ def see_following_posts (request):
     followingposts = p.get_page(page)
     
     return JsonResponse({'posts':[post.serialize() for post in followingposts]})
+ 
     
-    
+@login_required   
 @csrf_exempt
 def follow(request):
     data = json.loads(request.body)
@@ -192,27 +200,25 @@ def follow(request):
     # User cannot be the target of the follow action.
     if user!=target:
         
-        
         if target in user.connections.following.all():
             # Remove user from target's followers and remove target from user's following 
             
             user.connections.following.remove(target)
             target.connections.followers.remove(user)
+            return JsonResponse({'message':f'Unfollowed {target} :('}, safe=False)
         else:
             # Add user from target's followers and add target from user's following 
             
             user.connections.following.add(target)
             target.connections.followers.add(user)
+            return JsonResponse({'message':f'Now following {target} :)'}, safe=False)
     else:
         return(JsonResponse({"error":"You can't follow yourself."}, safe=False))
 
-    following = [u.username for u in user.connections.following.all()]
-    return JsonResponse({'following':following}, safe=False)
-
-
+    
+@login_required
 @csrf_exempt
 def edit_post(request):
-    user = request.user
     data = json.loads(request.body)
     post = Post.objects.get(id=int(data.get('post')))
     

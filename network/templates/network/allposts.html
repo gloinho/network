@@ -28,11 +28,12 @@
                 method:'POST',
                 body: JSON.stringify(formData)
             })
+            props.setUpdate(false)
             document.querySelector("#post_content").value = ""      
         }
 
         return ( 
-            <div className="container-fluid" id="title"> 
+            <div className="container-fluid" id="post-form"> 
                 <h1>Welcome to the Network <b>{"{{user.username}}"}</b>!!</h1>
                 <form className="form-row" onSubmit={handleSubmit}>
                     <div className="form-group col mb-2">
@@ -127,7 +128,7 @@
             </div>
         )
     }
-    
+
     function EditButtons(props){
         function showform(){
             props.setEdit(prevEdit => {
@@ -138,6 +139,7 @@
             <button className="btn btn-warning" onClick={showform}>Edit</button>
         )
     }
+
     function Posts (props) {
         const [data, setData] = React.useState(null);
         const [error, setError] = React.useState(null);
@@ -177,6 +179,7 @@
         }   
 
         return <div className="container-fluid"> 
+            <h1 id="latest-posts">Latest Posts</h1>
             {data &&  data.map(({like, id, posted_by, content, posted_at, liked_by}) => (
                 <div className="card" key={id} id={id}>
                         <div className="card-header">
@@ -208,7 +211,7 @@
     function App(){
         const auth = "{{user.is_authenticated}}" === 'False' ? false : true
         const [update, setUpdate] = React.useState(false);
-        console.log(update)
+
         return (
             <div>       
                 {auth && <PostForm setUpdate={setUpdate}/>}

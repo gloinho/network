@@ -83,7 +83,9 @@ DATABASES = {
 
 AUTH_USER_MODEL = "network.User"
 
+# TO BE REDIRECTED ON DECORATOR LOGIN_REQUIRED
 LOGIN_URL = 'login'
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
