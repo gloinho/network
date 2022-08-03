@@ -17,4 +17,5 @@ urlpatterns = [
     path('follow', views.follow, name='follow'),
     path("see_all_posts", views.see_all_posts, name="see_all_posts"),
     path('see_following_posts', views.see_following_posts, name="see_following_posts"),
+    path('edit_post', views.edit_post, name="edit_post"),
 ]

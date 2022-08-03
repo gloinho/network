@@ -208,3 +208,17 @@ def follow(request):
 
     following = [u.username for u in user.connections.following.all()]
     return JsonResponse({'following':following}, safe=False)
+
+
+@csrf_exempt
+def edit_post(request):
+    user = request.user
+    data = json.loads(request.body)
+    post = Post.objects.get(id=int(data.get('post')))
+    
+    # Update the posts content and then save it to database
+    newcontent = data.get('content')
+    post.content = newcontent
+    post.save()
+    
+    return JsonResponse({'post': [post.serialize()], 'newcontent':newcontent})
