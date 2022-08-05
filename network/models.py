@@ -5,8 +5,6 @@ from django.db import models
 class User(AbstractUser):
     pass
 
-
-
 class Post(models.Model):
     posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
     content = models.CharField(max_length=1000, blank=False)
@@ -27,30 +25,9 @@ class Post(models.Model):
 
     def __str__(self):
         return f'{self.posted_by.username} post.'
-    
-class Comment(models.Model):
-    posted_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments' )   
-    posted_on = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
-    content = models.CharField(max_length=500, blank=False)
-    posted_at = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return f'{self.posted_by} comment.'
-    
-    
+      
 class Connections(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True, unique=True, related_name='connections') 
-    
-    """     def exclude_this_user_from_options(self):
-            FOLLOW_CHOICES = []
-            all_users_excluding_this = User.objects.all().exclude(id = self.user)
-            for allowed_choices in all_users_excluding_this:
-                choices = (allowed_choices.username, allowed_choices.username)
-                FOLLOW_CHOICES.append(choices)
-            return FOLLOW_CHOICES
-            
-        FOLLOW_CHOICES = exclude_this_user_from_options() """
-            
+    user = models.OneToOneField(User, on_delete=models.CASCADE,primary_key=True, unique=True, related_name='connections')          
     followers = models.ManyToManyField(User, related_name='followers', blank=True, null=True)
     following = models.ManyToManyField(User, related_name='following', blank=True, null=True)
      
